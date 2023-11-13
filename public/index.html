@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body >
+    <div id="container">
+
+    <h1 style="color: white;">infyMusic AI</h1>
+    <form id="generationForm" enctype="multipart/form-data">
+        <label for="prompt" style="color: rgb(225, 236, 58); ">Enter Prompt:</label>
+        <input type="text" id="prompt" name="prompt" required class="large-input">
+        <br>
+        <br>
+        <br>
+
+        <label for="audioFile" style="color: white;">Upload Audio File:</label>
+        
+        <input type="file" id="audioFile" name="audioFile" accept=".mp3, .wav" style="color: white;">
+        <br>
+        <br>
+        <br>
+        <button type="submit">Generate</button>
+        <br>
+        <br>
+       
+    </form>
+    <br>
+    <br>
+    <audio id="audioPlayer" controls style="background-color: rgb(205, 48, 166);"></audio>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
