@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     const generationForm = document.getElementById("generationForm");
     const promptInput = document.getElementById("prompt");
+    const nameInput = document.getElementById("userName");
     const audioFileInput = document.getElementById("audioFile");
     const audioPlayer = document.getElementById("audioPlayer");
 
@@ -8,11 +9,13 @@ document.addEventListener("DOMContentLoaded", function () {
         event.preventDefault();
 
         const prompt = promptInput.value;
+        const name = nameInput.value;
         const audioFile = audioFileInput.files[0];
 
         if (prompt) {
             const formData = new FormData();
             formData.append("prompt", prompt);
+            formData.append("name", name);
 
             if (audioFile) {
                 formData.append("audioFile", audioFile);

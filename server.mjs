@@ -1,5 +1,6 @@
 
 //npm install firebase@latest
+//npm install moment
 import express from "express";
 import Replicate from "replicate";
 import multer from "multer";
@@ -7,7 +8,9 @@ import AWS from "aws-sdk";
 import fetch from "node-fetch";
 import "cross-fetch/dist/node-polyfill.js";
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, set } from 'firebase/database';
+import { getDatabase, ref, push, set } from 'firebase/database';
+import  os  from 'os';
+import moment from 'moment';
 
 global.fetch = fetch;
 
@@ -16,14 +19,14 @@ const port = 3000;
 //============================= fire base
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAuHQixzdhBKHKRb9xXDGcctdeG86VJhEY",
-  authDomain: "uploadtext-e99ee.firebaseapp.com",
-  databaseURL: "https://uploadtext-e99ee-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "uploadtext-e99ee",
-  storageBucket: "uploadtext-e99ee.appspot.com",
-  messagingSenderId: "216361135037",
-  appId: "1:216361135037:web:44d7e04d0f907123d080d4",
-  measurementId: "G-L070BD1M6B"
+  apiKey: "AIzaSyAFkoPpzlsshRavtUxxMDFrdH6uNvTYDAc",
+  authDomain: "icetsmusicgenai.firebaseapp.com",
+  databaseURL: "https://icetsmusicgenai-default-rtdb.firebaseio.com",
+  projectId: "icetsmusicgenai",
+  storageBucket: "icetsmusicgenai.appspot.com",
+  messagingSenderId: "126843020120",
+  appId: "1:126843020120:web:c8e2249649960c3843bb2d",
+  measurementId: "G-YCHBMGNGKJ"
 };
 
 // Initialize Firebase app
@@ -32,8 +35,26 @@ const appIni = initializeApp(firebaseConfig);
 // Get a reference to the database
 const firebaseDB = getDatabase(appIni);
 
+//---------------------------for device id--------------
+// Get the network interfaces
+const networkInterfaces = os.networkInterfaces();
+
+// Find a suitable network interface to use as the device ID
+let deviceId = '';
+for (const key of Object.keys(networkInterfaces)) {
+  const networkInterface = networkInterfaces[key][0];
+  if (networkInterface && networkInterface.mac && networkInterface.mac !== '00:00:00:00:00:00') {
+    deviceId = networkInterface.mac;
+    break;
+  }
+}
+
+console.log('Device ID:', deviceId);
 
 
+
+
+//------------------------------------------------aws------
 // Configure AWS SDK with your credentials
 AWS.config.update({
   accessKeyId: "AKIAZQJQYYCWBCBM3B6P",
@@ -82,15 +103,42 @@ app.post("/generate-audio", upload.single("audioFile"), async (req, res) => {
     const audioUrl = output;
     console.log("Generated Audio URL:", audioUrl);
 
-    // upload url on firebase
-    
-    set(ref(firebaseDB, 'theText'), audioUrl)
-    .then(() => {
-      console.log('Url uploaded on firebase successfully.');
-    })
-    .catch((error) => {
-      console.error('Error adding data: ', error);
-    });
+    //--------------------------for date and time('YYYY-MM-DD HH:mm:ss')-------------
+    // Get the current date and time using moment.js
+    const currentMoment = moment();
+
+    // Format the date as a string
+    const formattedMoment = currentMoment.format('YYYY-MM-DD HH:mm:ss');
+
+    console.log('Current Date and Time:', formattedMoment);
+
+    //---------------------------uploading data in firebase---
+
+    // Define data structure
+    const tableName = "musiclinks";
+
+    // Multiple data entries as an object
+    const dataEntries = {
+      DataAndTime: formattedMoment,
+      DeviceID: deviceId,
+      link: audioUrl,
+      name: req.body.name,
+      isPlayed: "N"
+      // Add more key-value pairs as needed
+    };
+
+    // Create a reference to the table in the database and use push to generate a unique key
+    const newEntryRef = push(ref(firebaseDB, tableName));
+
+    // Set the data at the generated key
+    set(newEntryRef, dataEntries)
+      .then(() => {
+        console.log('Data added in firebase successfully.');
+      })
+      .catch((error) => {
+        console.error('Error adding data: ', error);
+      });
+
 
 
     res.json({ audioUrl });
