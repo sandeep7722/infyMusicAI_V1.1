@@ -1,6 +1,7 @@
 
 //npm install firebase@latest
 //npm install moment
+//npm install bootstrap
 import express from "express";
 import Replicate from "replicate";
 import multer from "multer";
@@ -77,76 +78,83 @@ const upload = multer({ storage: storage });
 
 app.post("/generate-audio", upload.single("audioFile"), async (req, res) => {
   try {
-    // Upload the audio file to an S3 bucket
-    const params = {
-      Bucket: "testsandy123",
-      Key: `${Date.now()}-${req.file.originalname}`,
-      Body: req.file.buffer,
-      ContentType: ';audio/mpeg',
-      ACL: 'public-read', // Make the uploaded file publicly accessible
-    };
+      // Upload the audio file to an S3 bucket if provided
+      let publicAudioUrl = null;
+      if (req.file) {
+          const params = {
+              Bucket: "testsandy123",
+              Key: `${Date.now()}-${req.file.originalname}`,
+              Body: req.file.buffer,
+              ContentType: 'audio/mpeg',
+              ACL: 'public-read', // Make the uploaded file publicly accessible
+          };
 
-    const uploadResponse = await s3.upload(params).promise();
-    console.log(uploadResponse);
-    const publicAudioUrl = uploadResponse.Location;
-    console.log(publicAudioUrl);
+          const uploadResponse = await s3.upload(params).promise();
+          publicAudioUrl = uploadResponse.Location;
+          console.log("Uploaded Audio URL:", publicAudioUrl);
+      }
+      let output=null;
+       if(publicAudioUrl!=null)
+       {
+            output = await replicate.run(model, {
+              input: {
+                  model_version: "melody",
+                  prompt: req.body.prompt,
+                  duration: 8,
+                  input_audio: publicAudioUrl, // Use the public URL from S3 if available
+              },
+          });
+       }
+       else
+       {
+          output = await replicate.run(model, {
+            input: {
+                model_version: "melody",
+                prompt: req.body.prompt,
+                duration: 8,
+                // input_audio: publicAudioUrl, // Use the public URL from S3 if available
+            },
+        });
+       }
 
-    const output = await replicate.run(model, {
-      input: {
-        model_version: "melody",
-        prompt: req.body.prompt,
-        duration: 8,
-        input_audio: publicAudioUrl, // Use the public URL from S3
-      },
-    });
+      const audioUrl = output;
+      console.log("Generated Audio URL:", audioUrl);
 
-    const audioUrl = output;
-    console.log("Generated Audio URL:", audioUrl);
+      // Get the current date and time using moment.js
+      const currentMoment = moment();
+      const formattedMoment = currentMoment.format('YYYY-MM-DD HH:mm:ss');
 
-    //--------------------------for date and time('YYYY-MM-DD HH:mm:ss')-------------
-    // Get the current date and time using moment.js
-    const currentMoment = moment();
+      // Define data structure
+      const tableName = "musiclinks";
 
-    // Format the date as a string
-    const formattedMoment = currentMoment.format('YYYY-MM-DD HH:mm:ss');
+      // Multiple data entries as an object
+      const dataEntries = {
+          DataAndTime: formattedMoment,
+          DeviceID: deviceId,
+          link: audioUrl,
+          name: req.body.name,
+          isPlayed: "N"
+      };
 
-    console.log('Current Date and Time:', formattedMoment);
+      // Create a reference to the table in the database and use push to generate a unique key
+      const newEntryRef = push(ref(firebaseDB, tableName));
 
-    //---------------------------uploading data in firebase---
+      // Set the data at the generated key
+      set(newEntryRef, dataEntries)
+          .then(() => {
+              console.log('Data added in firebase successfully.');
+          })
+          .catch((error) => {
+              console.error('Error adding data: ', error);
+          });
 
-    // Define data structure
-    const tableName = "musiclinks";
-
-    // Multiple data entries as an object
-    const dataEntries = {
-      DataAndTime: formattedMoment,
-      DeviceID: deviceId,
-      link: audioUrl,
-      name: req.body.name,
-      isPlayed: "N"
-      // Add more key-value pairs as needed
-    };
-
-    // Create a reference to the table in the database and use push to generate a unique key
-    const newEntryRef = push(ref(firebaseDB, tableName));
-
-    // Set the data at the generated key
-    set(newEntryRef, dataEntries)
-      .then(() => {
-        console.log('Data added in firebase successfully.');
-      })
-      .catch((error) => {
-        console.error('Error adding data: ', error);
-      });
-
-
-
-    res.json({ audioUrl });
+      res.json({ audioUrl });
   } catch (error) {
-    console.error("Error generating audio:", error);
-    res.status(500).json({ error: "Failed to generate audio." });
+      console.error("Error generating audio:", error);
+      res.status(500).json({ error: "Failed to generate audio." });
   }
 });
+
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body >
@@ -28,12 +29,29 @@
         <button type="submit">Generate</button>
         <br>
         <br>
+        <!-- <div id="loading-spinner" style="display: none; color: #e3d9d9;">
+            
+            Loading...
+        </div> -->
+        <div id="loading-spinner" style="display: none;">
+            <div class="spinner-border text-light" role="status">
+               <span class="sr-only">Loading...</span>
+            </div>
+            <div id="numberDisplay" style="color: white; font-size: large;"></div>
+         </div>
+        <div id="container2">
+            <audio id="audioPlayer" controls style="display: none; background-color: rgb(205, 48, 166); "></audio>
+        </div>
        
     </form>
+    
     <br>
     <br>
-    <audio id="audioPlayer" controls style="background-color: rgb(205, 48, 166);"></audio>
+   
     </div>
+    <!-- <div id="container2">
+        <audio id="audioPlayer" controls style="display: none; background-color: rgb(205, 48, 166); "></audio>
+    </div> -->
     <script src="script.js"></script>
 </body>
 </html>
