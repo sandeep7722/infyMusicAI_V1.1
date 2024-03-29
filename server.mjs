@@ -65,7 +65,7 @@ AWS.config.update({
 
 const s3 = new AWS.S3();
 const replicate = new Replicate({
-  auth: "r8_Vdzl2SE8fN2qJuOczQjXZZUq5jm4cMx4LM4lO",
+  auth: "r8_bC1Vc1ZwvMSug50hlGYemwXOwe1zFa23YmWTa",
 });
 
 const model = "meta/musicgen:7a76a8258b23fae65c5a22debb8841d1d7e816b75c2f24218cd2bd8573787906";
