@@ -65,7 +65,7 @@ AWS.config.update({
 
 const s3 = new AWS.S3();
 const replicate = new Replicate({
-  auth: "export REPLICATE_API_TOKEN=r8_76tam9ieUSLgHdUyQvo0dXbHlH279z92Q7iBP",
+  auth: "r8_76tam9ieUSLgHdUyQvo0dXbHlH279z92Q7iBP",
 });
 
 const model = "meta/musicgen:671ac645ce5e552cc63a54a2bbff63fcf798043055d2dac5fc9e36a837eedcfb";
