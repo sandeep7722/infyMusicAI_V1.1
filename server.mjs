@@ -68,7 +68,7 @@ const replicate = new Replicate({
   auth: "r8_bC1Vc1ZwvMSug50hlGYemwXOwe1zFa23YmWTa",
 });
 
-const model = "meta/musicgen:7a76a8258b23fae65c5a22debb8841d1d7e816b75c2f24218cd2bd8573787906";
+const model = "meta/musicgen:671ac645ce5e552cc63a54a2bbff63fcf798043055d2dac5fc9e36a837eedcfb";
 
 app.use(express.json());
 app.use(express.static("public"));
@@ -97,23 +97,52 @@ app.post("/generate-audio", upload.single("audioFile"), async (req, res) => {
        if(publicAudioUrl!=null)
        {
             output = await replicate.run(model, {
+              // input: {
+              //     model_version: "melody",
+              //     prompt: req.body.prompt,
+              //     duration: 8,
+              //     input_audio: publicAudioUrl, // Use the public URL from S3 if available
+              // },
               input: {
-                  model_version: "melody",
-                  prompt: req.body.prompt,
-                  duration: 8,
-                  input_audio: publicAudioUrl, // Use the public URL from S3 if available
+                top_k: 250,
+                top_p: 0,
+                prompt: req.body.prompt,
+                duration: 8,
+                input_audio: publicAudioUrl,
+                temperature: 1,
+                continuation: false,
+                model_version: "stereo-large",
+                output_format: "mp3",
+                continuation_start: 0,
+                multi_band_diffusion: false,
+                normalization_strategy: "peak",
+                classifier_free_guidance: 3
               },
           });
        }
        else
        {
           output = await replicate.run(model, {
+            // input: {
+            //     model_version: "melody",
+            //     prompt: req.body.prompt,
+            //     duration: 8,
+            //     // input_audio: publicAudioUrl, // Use the public URL from S3 if available
+            // },
             input: {
-                model_version: "melody",
+                top_k: 250,
+                top_p: 0,
                 prompt: req.body.prompt,
                 duration: 8,
-                // input_audio: publicAudioUrl, // Use the public URL from S3 if available
-            },
+                temperature: 1,
+                continuation: false,
+                model_version: "stereo-large",
+                output_format: "mp3",
+                continuation_start: 0,
+                multi_band_diffusion: false,
+                normalization_strategy: "peak",
+                classifier_free_guidance: 3
+              },
         });
        }
 
